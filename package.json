@@ -44,6 +44,7 @@
     "test:mcp": "tsx examples/mcp-test.ts",
     "demo:prose-model": "tsx examples/prose-model.ts",
     "eval": "tsx examples/eval.ts",
+    "eval:prose": "tsx examples/prose-eval.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "keywords": [

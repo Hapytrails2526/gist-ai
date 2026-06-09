@@ -15,6 +15,13 @@
  * (BERT/XLM-R) would score keep/drop even better, but its weights are not
  * published as ONNX for transformers.js. This perplexity approach uses a model
  * (default `Xenova/distilgpt2`) that is. Swap `model` for any ONNX causal LM.
+ *
+ * MEASURED FINDING (npm run eval:prose): with distilgpt2 this does NOT beat the
+ * zero-dependency heuristic in `prose.ts` for signal preservation — perplexity
+ * keeps "surprising" tokens, which are often NOT the key entities/numbers the
+ * heuristic explicitly protects. So the heuristic remains gist's default; this
+ * is an opt-in experiment. A stronger model or the LLMLingua-2 classifier could
+ * change that, but on these metrics the heuristic wins.
  */
 export interface ModelProsePrunerOptions {
   /** transformers.js causal-LM model id with an ONNX export. */
