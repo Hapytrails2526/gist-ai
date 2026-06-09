@@ -14,10 +14,32 @@ import { compressContent, estimateTokens } from "../src/index.js";
 
 interface Sample {
   name: string;
-  type?: "log" | "json" | "code" | "prose";
+  type?: "log" | "json" | "code" | "prose" | "trace";
   text: string;
   mustSurvive: string[];
 }
+
+const stackTrace = [
+  "TypeError: Cannot read properties of undefined (reading 'id')",
+  "    at getUser (src/services/user.js:42:18)",
+  "    at handler (src/routes/api.js:88:25)",
+  "    at Layer.handle (node_modules/express/lib/router/layer.js:95:5)",
+  "    at next (node_modules/express/lib/router/route.js:144:13)",
+  "    at Route.dispatch (node_modules/express/lib/router/route.js:114:3)",
+  "    at node_modules/express/lib/router/index.js:284:15",
+  "    at processTicksAndRejections (node:internal/process/task_queues:95:5)",
+].join("\n");
+
+const testOutput = [
+  ...Array.from({ length: 18 }, (_, i) => `PASS src/unit/module${i}.test.js`),
+  "FAIL src/checkout.test.js",
+  "  ● checkout › applies the discount code",
+  "    expect(received).toBe(expected)",
+  "    Expected: 90",
+  "    Received: 100",
+  "      at Object.<anonymous> (src/checkout.test.js:31:23)",
+  "Tests: 1 failed, 18 passed, 19 total",
+].join("\n");
 
 const repetitiveLog = [
   ...Array.from({ length: 60 }, (_, i) => `2026-06-09T10:00:${String(i % 60).padStart(2, "0")}Z INFO worker: job ${i} ok (${10 + (i % 5)}ms)`),
@@ -64,6 +86,8 @@ const samples: Sample[] = [
   { name: "json: 50 + 1 anomaly", type: "json", text: json, mustSurvive: ["quota exceeded", "error"] },
   { name: "code: commented", type: "code", text: code, mustSurvive: ["function fib", "memo[k] = go(k - 1)"] },
   { name: "prose: report", type: "prose", text: prose, mustSurvive: ["23", "enterprise", "March"] },
+  { name: "trace: JS stack", text: stackTrace, mustSurvive: ["Cannot read properties of undefined", "getUser (src/services/user.js:42", "src/routes/api.js:88"] },
+  { name: "trace: jest (18 pass, 1 fail)", text: testOutput, mustSurvive: ["FAIL src/checkout.test.js", "applies the discount", "Expected: 90", "1 failed"] },
 ];
 
 console.log("=== gist compression eval (safe vs aggressive) ===\n");

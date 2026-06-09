@@ -30,6 +30,7 @@ export { ModelProsePruner, type ModelProsePrunerOptions } from "./compress/prose
 export { compressLog } from "./compress/logs.js";
 export { compressJson } from "./compress/json.js";
 export { compressCode } from "./compress/code.js";
+export { compressTrace } from "./compress/trace.js";
 
 export { MockProvider } from "./providers/mock.js";
 export { ClaudeProvider, type ClaudeProviderOptions } from "./providers/claude.js";

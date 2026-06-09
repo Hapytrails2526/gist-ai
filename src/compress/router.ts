@@ -4,8 +4,9 @@ import { pruneProse } from "./prose.js";
 import { compressLog } from "./logs.js";
 import { compressJson } from "./json.js";
 import { compressCode } from "./code.js";
+import { compressTrace } from "./trace.js";
 
-export type ContentType = "json" | "log" | "code" | "prose";
+export type ContentType = "json" | "log" | "code" | "prose" | "trace";
 
 /** Sniff the content type so the right specialist compressor is used. */
 export function detectType(text: string): ContentType {
@@ -21,6 +22,15 @@ export function detectType(text: string): ContentType {
       /* not JSON, keep sniffing */
     }
   }
+  // Stack traces / test output — needs a real stack (≥2 frames), a Python
+  // traceback, or several test markers, so ordinary logs aren't captured.
+  const jsFrames = (t.match(/^\s*at\s+.+:\d+:\d+/gm) ?? []).length;
+  const pyFrames = (t.match(/^\s*File ".*", line \d+/gm) ?? []).length;
+  const testMarks = (t.match(/✗|✕|✘|✖|✓|✔|\bPASS\b|\bFAIL(?:ED)?\b|\bnot ok \d+|\b\d+ (?:passing|failing|passed|failed)\b/g) ?? []).length;
+  if (jsFrames >= 2 || pyFrames >= 2 || /Traceback \(most recent call last\)/.test(t) || testMarks >= 3) {
+    return "trace";
+  }
+
   const lines = t.split(/\r?\n/);
   if (lines.length >= 4) {
     const logHits = lines.filter(
@@ -72,6 +82,9 @@ export function compressContent(input: string, opts: CompressOptions = {}): Comp
       break;
     case "code":
       text = compressCode(input, level);
+      break;
+    case "trace":
+      text = compressTrace(input, level);
       break;
     default:
       text = pruneProse(input, { keep: opts.keep ?? (level === "aggressive" ? 0.3 : 0.5) });
