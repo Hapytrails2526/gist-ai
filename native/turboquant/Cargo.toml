@@ -1,0 +1,15 @@
+[package]
+name = "turboquant"
+version = "0.1.0"
+edition = "2021"
+description = "TurboQuant-style data-oblivious vector quantization kernel (WASM)"
+
+[lib]
+crate-type = ["cdylib"]
+
+[profile.release]
+opt-level = "z"
+lto = true
+panic = "abort"
+strip = true
+codegen-units = 1
