@@ -14,10 +14,27 @@ import { compressContent, estimateTokens } from "../src/index.js";
 
 interface Sample {
   name: string;
-  type?: "log" | "json" | "code" | "prose" | "trace";
+  type?: "log" | "json" | "code" | "prose" | "trace" | "table";
   text: string;
   mustSurvive: string[];
 }
+
+const csv = [
+  "id,name,status,latency_ms",
+  ...Array.from({ length: 40 }, (_, i) => `${i + 1},svc-${i + 1},ok,${10 + (i % 7)}`),
+  "41,svc-billing,error,timeout",
+  ...Array.from({ length: 18 }, (_, i) => `${42 + i},svc-${42 + i},ok,${12 + (i % 5)}`),
+].join("\n");
+
+const mdTable = [
+  "| region | users | revenue |",
+  "|--------|-------|---------|",
+  "| US     | 1200  | 45000   |",
+  "| EU     | 900   | 32000   |",
+  "| LATAM  | 400   | 11000   |",
+  "| MEA    | 300   | 9000    |",
+  "| APAC   | 50    | error   |",
+].join("\n");
 
 const stackTrace = [
   "TypeError: Cannot read properties of undefined (reading 'id')",
@@ -88,6 +105,8 @@ const samples: Sample[] = [
   { name: "prose: report", type: "prose", text: prose, mustSurvive: ["23", "enterprise", "March"] },
   { name: "trace: JS stack", text: stackTrace, mustSurvive: ["Cannot read properties of undefined", "getUser (src/services/user.js:42", "src/routes/api.js:88"] },
   { name: "trace: jest (18 pass, 1 fail)", text: testOutput, mustSurvive: ["FAIL src/checkout.test.js", "applies the discount", "Expected: 90", "1 failed"] },
+  { name: "table: CSV (59 rows)", text: csv, mustSurvive: ["id,name,status,latency_ms", "svc-billing", "error"] },
+  { name: "table: markdown", text: mdTable, mustSurvive: ["region", "APAC", "error"] },
 ];
 
 console.log("=== gist compression eval (safe vs aggressive) ===\n");

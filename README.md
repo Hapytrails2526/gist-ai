@@ -69,6 +69,7 @@ Measured on the demo (`npm run demo:compress`):
 | commented code | code | 82→64 | 22% |
 | prose report | prose | 74→55 | 26% (LLMLingua-2-style pruner) |
 | stack trace / test output | trace | — | **64–90%** (keeps the error + your-code frames + failing tests; collapses node_modules frames and passing tests) |
+| CSV / tabular / markdown table | table | — | **85–95%** on big tables (keeps header + sample rows + anomaly rows + a count) |
 
 Honest framing: logs/JSON compress 80–95%, code/prose 20–50% — real-world
 full-session savings land ~40–50%, not the headline 95%.

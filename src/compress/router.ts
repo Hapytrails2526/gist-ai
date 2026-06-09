@@ -5,8 +5,9 @@ import { compressLog } from "./logs.js";
 import { compressJson } from "./json.js";
 import { compressCode } from "./code.js";
 import { compressTrace } from "./trace.js";
+import { compressTable, pickDelimiter } from "./table.js";
 
-export type ContentType = "json" | "log" | "code" | "prose" | "trace";
+export type ContentType = "json" | "log" | "code" | "prose" | "trace" | "table";
 
 /** Sniff the content type so the right specialist compressor is used. */
 export function detectType(text: string): ContentType {
@@ -30,6 +31,10 @@ export function detectType(text: string): ContentType {
   if (jsFrames >= 2 || pyFrames >= 2 || /Traceback \(most recent call last\)/.test(t) || testMarks >= 3) {
     return "trace";
   }
+
+  // Tabular: a consistent delimiter (CSV/TSV/markdown table) across the rows.
+  const tableLines = t.split(/\r?\n/).filter((l) => l.trim());
+  if (tableLines.length >= 3 && pickDelimiter(tableLines)) return "table";
 
   const lines = t.split(/\r?\n/);
   if (lines.length >= 4) {
@@ -85,6 +90,9 @@ export function compressContent(input: string, opts: CompressOptions = {}): Comp
       break;
     case "trace":
       text = compressTrace(input, level);
+      break;
+    case "table":
+      text = compressTable(input, level);
       break;
     default:
       text = pruneProse(input, { keep: opts.keep ?? (level === "aggressive" ? 0.3 : 0.5) });

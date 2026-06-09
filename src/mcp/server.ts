@@ -50,9 +50,9 @@ Don't use when: the content is already small (< ~200 tokens) — overhead isn't 
     inputSchema: {
       content: z.string().min(1, "content must not be empty").describe("Raw text to compress"),
       type: z
-        .enum(["auto", "log", "json", "code", "prose", "trace"])
+        .enum(["auto", "log", "json", "code", "prose", "trace", "table"])
         .default("auto")
-        .describe("Force a compressor or auto-detect ('trace' = stack traces / test output)"),
+        .describe("Force a compressor or auto-detect ('trace' = stack traces / test output; 'table' = CSV / tabular)"),
       level: z
         .enum(["safe", "aggressive"])
         .default("safe")
