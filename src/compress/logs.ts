@@ -17,25 +17,41 @@ const templ = (l: string): string =>
     .replace(/0x[0-9a-fA-F]+/g, "<hex>")
     .replace(/\b[0-9a-f]{8,}\b/gi, "<hash>");
 
+interface Group {
+  first: string; // full first line (used when the template occurs once)
+  rep: string; // timestamp-stripped, number-generalized template
+  count: number;
+}
+
 export function compressLog(text: string): string {
   const lines = text.split(/\r?\n/);
-  const out: string[] = [];
-  const seen = new Map<string, number>();
-  let dropped = 0;
+  const out: Array<string | Group> = [];
+  const groups = new Map<string, Group>();
 
   for (const l of lines) {
     if (KEEP.test(l) || STACK.test(l)) {
-      out.push(l); // always keep failures and stack frames
+      out.push(l); // always keep failures and stack frames, verbatim
       continue;
     }
     if (!l.trim()) continue; // drop blanks
     const t = templ(l);
-    const c = (seen.get(t) ?? 0) + 1;
-    seen.set(t, c);
-    if (c <= 1) out.push(l);
-    else dropped++; // routine repeat
+    let g = groups.get(t);
+    if (!g) {
+      const rep = l
+        .replace(/^\s*\d{4}-\d{2}-\d{2}[ T][\d:.,]+Z?\s*/, "") // drop leading timestamp
+        .replace(/\b\d+(?:\.\d+)?\b/g, "#"); // generalize varying numbers
+      g = { first: l, rep, count: 0 };
+      groups.set(t, g);
+      out.push(g);
+    }
+    g.count++;
   }
 
-  if (dropped > 0) out.push(`… ${dropped} repeated/routine log lines omitted …`);
-  return out.join("\n");
+  // Repeated routine lines collapse to "N× <template>" (timestamps + values
+  // dropped); a line that occurred once is kept in full.
+  return out
+    .map((item) =>
+      typeof item === "string" ? item : item.count > 1 ? `${item.count}× ${item.rep}` : item.first
+    )
+    .join("\n");
 }

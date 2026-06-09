@@ -1,6 +1,6 @@
 {
   "name": "gist-ai",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Memory & context compression for AI applications. Keeps the gist, drops the bulk.",
   "type": "module",
   "author": "Theresa <hapytrails2526@gmail.com>",
@@ -43,6 +43,7 @@
     "demo:compress": "tsx examples/compress.ts",
     "test:mcp": "tsx examples/mcp-test.ts",
     "demo:prose-model": "tsx examples/prose-model.ts",
+    "eval": "tsx examples/eval.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "keywords": [
