@@ -66,25 +66,32 @@ const samples: Sample[] = [
   { name: "prose: report", type: "prose", text: prose, mustSurvive: ["23", "enterprise", "March"] },
 ];
 
-console.log("=== gist compression eval ===\n");
-console.log("sample                          saved%   signal-recall");
-console.log("------------------------------  ------   -------------");
+console.log("=== gist compression eval (safe vs aggressive) ===\n");
+console.log("sample                          safe%  recall   aggr%  recall");
+console.log("------------------------------  -----  ------   -----  ------");
 
-let totIn = 0;
-let totOut = 0;
-let totMarkers = 0;
-let totKept = 0;
+const tot = { safeIn: 0, safeOut: 0, aggrIn: 0, aggrOut: 0, markers: 0, safeKept: 0, aggrKept: 0 };
 for (const s of samples) {
-  const r = compressContent(s.text, { type: s.type });
-  const kept = s.mustSurvive.filter((m) => r.text.includes(m)).length;
-  totIn += r.stats.originalTokens;
-  totOut += r.stats.compressedTokens;
-  totMarkers += s.mustSurvive.length;
-  totKept += kept;
-  const recall = `${kept}/${s.mustSurvive.length}`;
-  const flag = kept < s.mustSurvive.length ? " ⚠️ LOST SIGNAL" : "";
-  console.log(`${s.name.padEnd(30)}  ${(r.stats.saved * 100).toFixed(0).padStart(5)}%   ${recall.padStart(11)}${flag}`);
+  const safe = compressContent(s.text, { type: s.type, level: "safe" });
+  const aggr = compressContent(s.text, { type: s.type, level: "aggressive" });
+  const safeKept = s.mustSurvive.filter((m) => safe.text.includes(m)).length;
+  const aggrKept = s.mustSurvive.filter((m) => aggr.text.includes(m)).length;
+  tot.safeIn += safe.stats.originalTokens;
+  tot.safeOut += safe.stats.compressedTokens;
+  tot.aggrIn += aggr.stats.originalTokens;
+  tot.aggrOut += aggr.stats.compressedTokens;
+  tot.markers += s.mustSurvive.length;
+  tot.safeKept += safeKept;
+  tot.aggrKept += aggrKept;
+  const m = s.mustSurvive.length;
+  const flag = aggrKept < m ? " ⚠️" : "";
+  console.log(
+    `${s.name.padEnd(30)}  ${(safe.stats.saved * 100).toFixed(0).padStart(4)}%  ${`${safeKept}/${m}`.padStart(5)}   ${(aggr.stats.saved * 100).toFixed(0).padStart(4)}%  ${`${aggrKept}/${m}`.padStart(5)}${flag}`
+  );
 }
-console.log("------------------------------  ------   -------------");
-console.log(`${"AGGREGATE".padEnd(30)}  ${((1 - totOut / totIn) * 100).toFixed(0).padStart(5)}%   ${(totKept + "/" + totMarkers).padStart(11)}`);
-console.log(`\n(${estimateTokens("")} — tokens: ${totIn} → ${totOut}; signal preserved: ${totKept}/${totMarkers})`);
+console.log("------------------------------  -----  ------   -----  ------");
+console.log(
+  `${"AGGREGATE".padEnd(30)}  ${((1 - tot.safeOut / tot.safeIn) * 100).toFixed(0).padStart(4)}%  ${`${tot.safeKept}/${tot.markers}`.padStart(5)}   ${((1 - tot.aggrOut / tot.aggrIn) * 100).toFixed(0).padStart(4)}%  ${`${tot.aggrKept}/${tot.markers}`.padStart(5)}`
+);
+console.log(`\nsafe: ${tot.safeIn}→${tot.safeOut} tok · aggressive: ${tot.aggrIn}→${tot.aggrOut} tok (signal must stay ${tot.markers}/${tot.markers})`);
+void estimateTokens;

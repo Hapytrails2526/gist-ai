@@ -72,6 +72,25 @@ Measured on the demo (`npm run demo:compress`):
 Honest framing: logs/JSON compress 80–95%, code/prose 20–50% — real-world
 full-session savings land ~40–50%, not the headline 95%.
 
+### Aggressive mode
+
+Pass `level: "aggressive"` to squeeze much harder — logs collapse to **errors +
+a count**, JSON arrays fold to a **schema + count**, prose keeps fewer tokens —
+while still preserving every error/anomaly. Measured by `npm run eval` (which
+scores token-savings **and** signal-recall):
+
+| | safe | aggressive | signal kept |
+|---|---|---|---|
+| varied log | 44% | **75%** | ✅ |
+| prose | 33% | **59%** | ✅ |
+| **aggregate** | 85% | **92%** | **13/13** |
+
+```ts
+g.compress(hugeLog, { level: "aggressive" }); // when you only need the gist
+```
+
+The MCP `gist_compress` tool takes the same `level` argument.
+
 ## Use it inside Claude Code / Cursor / Codex (MCP server)
 
 `gist` ships an MCP server so any agent can compress what it reads. It exposes:

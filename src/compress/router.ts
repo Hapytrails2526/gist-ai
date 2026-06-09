@@ -42,6 +42,8 @@ export interface CompressOptions {
   type?: ContentType;
   /** Prose keep-ratio (passed to the token pruner). */
   keep?: number;
+  /** "aggressive" squeezes harder per type (still keeps errors/anomalies). Default "safe". */
+  level?: "safe" | "aggressive";
   /** If provided, the original is cached here and a retrieve-handle appended. */
   reversible?: ReversibleStore;
 }
@@ -59,19 +61,20 @@ export interface CompressResult {
  */
 export function compressContent(input: string, opts: CompressOptions = {}): CompressResult {
   const type = opts.type ?? detectType(input);
+  const level = opts.level ?? "safe";
   let text: string;
   switch (type) {
     case "json":
-      text = compressJson(input);
+      text = compressJson(input, { level });
       break;
     case "log":
-      text = compressLog(input);
+      text = compressLog(input, level);
       break;
     case "code":
-      text = compressCode(input);
+      text = compressCode(input, level);
       break;
     default:
-      text = pruneProse(input, { keep: opts.keep });
+      text = pruneProse(input, { keep: opts.keep ?? (level === "aggressive" ? 0.3 : 0.5) });
       break;
   }
 

@@ -12,6 +12,8 @@ export interface JsonCompressOptions {
   sample?: number;
   /** Clip string values longer than this many chars. Default 200. */
   maxString?: number;
+  /** "aggressive" folds long object-arrays to a schema + count. Default "safe". */
+  level?: "safe" | "aggressive";
 }
 
 const ANOMALY = /error|fail|exception|warn|null|missing|invalid/i;
@@ -23,8 +25,8 @@ export function compressJson(text: string, opts: JsonCompressOptions = {}): stri
   } catch {
     return text;
   }
-  const sample = opts.sample ?? 2;
-  const maxString = opts.maxString ?? 200;
+  const sample = opts.level === "aggressive" ? 0 : opts.sample ?? 2;
+  const maxString = opts.level === "aggressive" ? 80 : opts.maxString ?? 200;
 
   const walk = (v: unknown): unknown => {
     if (Array.isArray(v)) {
@@ -37,6 +39,12 @@ export function compressJson(text: string, opts: JsonCompressOptions = {}): stri
         .slice(0, 3)
         .map(walk);
       const omitted = v.length - sample - anomalies.length;
+      // Aggressive: describe the bulk by its object schema instead of sampling.
+      if (opts.level === "aggressive" && omitted > 0) {
+        const first = v.find((x) => x && typeof x === "object" && !Array.isArray(x));
+        const schema = first ? `{${Object.keys(first as object).join(",")}}` : "items";
+        return [...head, ...anomalies, `…(${omitted}× ${schema})`];
+      }
       return [...head, ...anomalies, `…(${omitted} more similar items)`];
     }
     if (v && typeof v === "object") {

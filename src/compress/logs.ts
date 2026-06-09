@@ -23,8 +23,24 @@ interface Group {
   count: number;
 }
 
-export function compressLog(text: string): string {
+export type CompressLevel = "safe" | "aggressive";
+
+export function compressLog(text: string, level: CompressLevel = "safe"): string {
   const lines = text.split(/\r?\n/);
+
+  // Aggressive: keep only errors/warnings/stack frames; replace ALL routine
+  // lines with a single count. Use when you only care about what went wrong.
+  if (level === "aggressive") {
+    const kept: string[] = [];
+    let routine = 0;
+    for (const l of lines) {
+      if (KEEP.test(l) || STACK.test(l)) kept.push(l);
+      else if (l.trim()) routine++;
+    }
+    if (routine > 0) kept.push(`(${routine} routine log lines omitted)`);
+    return kept.join("\n");
+  }
+
   const out: Array<string | Group> = [];
   const groups = new Map<string, Group>();
 

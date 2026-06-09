@@ -31,7 +31,8 @@ server.registerTool(
 Args:
   - content (string): the raw text to compress (a log, JSON blob, source file, or prose)
   - type ('auto'|'log'|'json'|'code'|'prose'): force a compressor, or 'auto' to detect (default 'auto')
-  - keep (number 0.05–1): for prose, the fraction of tokens to keep (default 0.5)
+  - level ('safe'|'aggressive'): 'aggressive' squeezes much harder (logs→errors only, JSON→schema+count) while still keeping errors/anomalies. Use when you only need the gist. Default 'safe'.
+  - keep (number 0.05–1): for prose, the fraction of tokens to keep (default 0.5, or 0.3 when aggressive)
 
 Returns structured data:
   {
@@ -52,6 +53,10 @@ Don't use when: the content is already small (< ~200 tokens) — overhead isn't 
         .enum(["auto", "log", "json", "code", "prose"])
         .default("auto")
         .describe("Force a compressor or auto-detect"),
+      level: z
+        .enum(["safe", "aggressive"])
+        .default("safe")
+        .describe("'aggressive' squeezes harder; still keeps errors/anomalies"),
       keep: z
         .number()
         .min(0.05)
@@ -66,9 +71,10 @@ Don't use when: the content is already small (< ~200 tokens) — overhead isn't 
       openWorldHint: false,
     },
   },
-  async ({ content, type, keep }) => {
+  async ({ content, type, level, keep }) => {
     const r = compressContent(content, {
       type: type === "auto" ? undefined : (type as ContentType),
+      level,
       keep,
       reversible: store,
     });
