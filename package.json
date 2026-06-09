@@ -4,6 +4,14 @@
   "description": "Memory & context compression for AI applications. Keeps the gist, drops the bulk.",
   "type": "module",
   "author": "Theresa <hapytrails2526@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Hapytrails2526/gist-ai.git"
+  },
+  "homepage": "https://github.com/Hapytrails2526/gist-ai#readme",
+  "bugs": {
+    "url": "https://github.com/Hapytrails2526/gist-ai/issues"
+  },
   "engines": {
     "node": ">=18"
   },
