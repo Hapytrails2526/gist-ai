@@ -1,6 +1,6 @@
 {
   "name": "gist-ai",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Memory & context compression for AI applications. Keeps the gist, drops the bulk.",
   "type": "module",
   "author": "Theresa <hapytrails2526@gmail.com>",
@@ -19,6 +19,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
+    "gist": "dist/cli.js",
     "gist-mcp": "dist/mcp/server.js"
   },
   "exports": {
